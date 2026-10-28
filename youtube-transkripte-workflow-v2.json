@@ -1,0 +1,523 @@
+{
+  "name": "YouTube-Transkripte → Google Docs (Gicht-Kanal)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "742b4cb2-353c-47d7-b416-5adbc0b6d8cf",
+      "name": "Start (manuell)",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1c3855eb-41ae-46ff-b35f-9ded2077c3f4",
+              "name": "channel_url",
+              "value": "https://www.youtube.com/@jochenhein-gicht-lotse",
+              "type": "string"
+            },
+            {
+              "id": "ede16bc9-b2b7-438e-94cd-3c73f6f081e0",
+              "name": "max_videos",
+              "value": 3,
+              "type": "number"
+            },
+            {
+              "id": "863811b8-0649-4f44-b9dd-167e23c5b9c9",
+              "name": "language",
+              "value": "de",
+              "type": "string"
+            },
+            {
+              "id": "a30b6d71-6239-482f-86a3-17bcf246c54a",
+              "name": "start_date",
+              "value": "2017-04-01",
+              "type": "string"
+            },
+            {
+              "id": "e41f1260-4b0d-4fba-9e68-c6fc4696fac7",
+              "name": "end_date",
+              "value": "2017-04-30",
+              "type": "string"
+            },
+            {
+              "id": "8637f8df-9cfc-48ab-a3bd-6756a9fd1c80",
+              "name": "drive_folder_id",
+              "value": "HIER-ORDNER-ID-EINTRAGEN",
+              "type": "string"
+            },
+            {
+              "id": "59b6585f-5b13-44bf-acf4-c7a0cda4ed41",
+              "name": "ki_modell",
+              "value": "claude-haiku-4-5-20251001",
+              "type": "string"
+            },
+            {
+              "id": "4bf106c3-726c-4fe8-b2fd-e5c63005eb0e",
+              "name": "prompt",
+              "value": "Du bist ein sorgfältiger Lektor. Du erhältst das automatisch erzeugte Transkript eines deutschsprachigen YouTube-Videos zum Thema Gicht und Ernährung. Es enthält kaum Satzzeichen und keine Absätze.\n\nDeine Aufgabe:\n1. Setze korrekte Satzzeichen (Punkte, Kommata, Fragezeichen, Doppelpunkte usw.) und korrigiere die Groß- und Kleinschreibung.\n2. Gliedere den Text in sinnvolle Absätze (ein Gedanke bzw. Thema pro Absatz). Trenne Absätze durch eine Leerzeile.\n3. Behalte den Wortlaut bei: nichts kürzen, nichts zusammenfassen, nichts hinzufügen, nicht umformulieren.\n4. Korrigiere nur eindeutige Erkennungsfehler bei Fachbegriffen (z. B. Harnsäure, Purine, Allopurinol, Febuxostat), wenn sie offensichtlich falsch transkribiert wurden.\n5. Reine Füllwörter wie „äh“ oder „ähm“ darfst du entfernen.\n\nGib ausschließlich den bearbeiteten Text zurück – ohne Einleitung, Überschrift, Markdown oder Kommentar.",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "d4313c66-9557-4754-994e-1067b4cf4f49",
+      "name": "Konfiguration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/starvibe~youtube-video-transcript/runs",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ (() => { const c = $('Konfiguration').first().json; const body = { channel_url: c.channel_url, max_videos: c.max_videos, language: c.language, include_transcript_text: true }; if (c.start_date) body.start_date = c.start_date; if (c.end_date) body.end_date = c.end_date; return JSON.stringify(body); })() }}",
+        "options": {}
+      },
+      "id": "c4a8f727-3492-472d-a457-b0d8836fd46d",
+      "name": "Apify: Actor starten",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "0cd6f46f-920b-4d2c-aded-39bbed60d085",
+      "name": "30 Sek. warten",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        660,
+        300
+      ],
+      "webhookId": "057e799b-8fd6-42d9-aa79-b44851c8153d"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.apify.com/v2/actor-runs/{{ $('Apify: Actor starten').first().json.data.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "33dbae1b-70db-46c3-a8b7-033514062527",
+      "name": "Apify: Status abfragen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "8e86904a-5667-475b-b09c-fc0287768977",
+              "leftValue": "={{ $json.data.status }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "SUCCEEDED"
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0249f654-fe04-4401-a34f-d44f46ba53dc",
+      "name": "Fertig?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "fd58d468-1f43-4313-8786-353260144d94",
+              "leftValue": "={{ $json.data.status }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "RUNNING"
+            },
+            {
+              "id": "e382966e-28af-4169-9a03-b994dde50b1d",
+              "leftValue": "={{ $json.data.status }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "READY"
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "9457ec10-ef6b-4a91-a54f-c1d63afda2d9",
+      "name": "Läuft noch?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        480
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "=Apify-Lauf beendet mit Status {{ $json.data.status }}. Details in der Apify-Konsole."
+      },
+      "id": "a26125a8-b656-4db7-97fc-635de0fac991",
+      "name": "Fehler melden",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        1540,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://api.apify.com/v2/datasets/{{ $json.data.defaultDatasetId }}/items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "clean",
+              "value": "true"
+            },
+            {
+              "name": "fields",
+              "value": "video_id,title,url,published_at,transcript_text"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "cb88b364-9ab2-4a4e-8662-523305ff2f94",
+      "name": "Apify: Ergebnisse holen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "be2bbe95-d122-4370-8cd0-085ff9b485d6",
+              "leftValue": "={{ $json.transcript_text }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              },
+              "rightValue": ""
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "424cb444-a23d-4de1-b3da-28be20019731",
+      "name": "Nur Videos mit Transkript",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "3f88bfed-9a6a-4de5-aada-2a25091e9daf",
+      "name": "Loop über Videos",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        1760,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: $('Konfiguration').first().json.ki_modell, max_tokens: 32000, system: $('Konfiguration').first().json.prompt, messages: [{ role: 'user', content: $json.transcript_text }] }) }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "id": "f70fe8fa-2060-4671-8495-2245e2ec0d86",
+      "name": "Claude: Text aufbereiten",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1980,
+        300
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "operation": "createFromText",
+        "content": "={{ $json.content.filter(c => c.type === 'text').map(c => c.text).join('\\n\\n') }}",
+        "name": "={{ (() => { const v = $('Loop über Videos').item.json; const d = (v.published_at || '').slice(0, 10); return (d ? d + '-' : '') + v.title.replace(/[\\\\/]/g, '-').trim() + '-TS'; })() }}",
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Konfiguration').first().json.drive_folder_id }}"
+        },
+        "options": {
+          "convertToGoogleDocument": true
+        }
+      },
+      "id": "5e2132a0-ddf3-4d9e-9a66-e4577b80e8d5",
+      "name": "Google Drive: als Google Doc speichern",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        2200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "width": 900,
+        "height": 300,
+        "content": "## YouTube-Transkripte → Google Docs\n1. **Konfiguration** öffnen: Kanal-URL und Google-Drive-Ordner-ID eintragen.\n2. Zugangsdaten (Credentials) zuweisen:\n   - Apify-Nodes: *Header Auth* → Name `Authorization`, Wert `Bearer DEIN_APIFY_TOKEN`\n   - Claude-Node: *Header Auth* → Name `x-api-key`, Wert `DEIN_ANTHROPIC_KEY`\n   - Google-Drive-Node: *Google Drive OAuth2*\n3. Erst mit `max_videos = 2` testen, dann auf 50 stellen.\n4. **Execute workflow** klicken."
+      },
+      "id": "fb07679a-36b4-4541-be88-7afa99475636",
+      "name": "Anleitung",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -40
+      ]
+    }
+  ],
+  "connections": {
+    "Start (manuell)": {
+      "main": [
+        [
+          {
+            "node": "Konfiguration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Konfiguration": {
+      "main": [
+        [
+          {
+            "node": "Apify: Actor starten",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify: Actor starten": {
+      "main": [
+        [
+          {
+            "node": "30 Sek. warten",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "30 Sek. warten": {
+      "main": [
+        [
+          {
+            "node": "Apify: Status abfragen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify: Status abfragen": {
+      "main": [
+        [
+          {
+            "node": "Fertig?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fertig?": {
+      "main": [
+        [
+          {
+            "node": "Apify: Ergebnisse holen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Läuft noch?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Läuft noch?": {
+      "main": [
+        [
+          {
+            "node": "30 Sek. warten",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fehler melden",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apify: Ergebnisse holen": {
+      "main": [
+        [
+          {
+            "node": "Nur Videos mit Transkript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nur Videos mit Transkript": {
+      "main": [
+        [
+          {
+            "node": "Loop über Videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop über Videos": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Claude: Text aufbereiten",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude: Text aufbereiten": {
+      "main": [
+        [
+          {
+            "node": "Google Drive: als Google Doc speichern",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Drive: als Google Doc speichern": {
+      "main": [
+        [
+          {
+            "node": "Loop über Videos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
